@@ -1,2 +1,9 @@
-# adsense-ban-check
-A simple tool to check if a domain has banned by Google AdSense. 
+# Adsense Ban Check
+
+## Installation
+
+```bash
+git clone https://github.com/fabelx/adsense-ban-check
+cd adsense-ban-check
+go build .
+```
