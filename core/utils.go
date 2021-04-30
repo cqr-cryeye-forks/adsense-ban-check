@@ -10,8 +10,10 @@ import (
 )
 
 type Result struct {
-	Target string `json:"target"`
-	Data string `json:"data"`
+	Target   string `json:"target"`
+	Data     string `json:"data"`
+	IsBanned bool   `json:"is_banned"`
+	Error    string `json:"error"`
 }
 
 func setHeaders(r *http.Request) {
@@ -25,9 +27,9 @@ func setHeaders(r *http.Request) {
 	r.Header.Set("Referer", "https://adsensechecker.com/")
 }
 
-func getResponse(target *string) *http.Response {
+func getResponse(target string) *http.Response {
 	client := &http.Client{}
-	var d = `url=` + *target + `&submit=CHECK`
+	var d = `url=` + target + `&submit=CHECK`
 	var data = strings.NewReader(d)
 	req, err := http.NewRequest("POST", "https://adsensechecker.com/", data)
 
@@ -45,7 +47,7 @@ func getResponse(target *string) *http.Response {
 	return resp
 }
 
-func parseResponse(r *http.Response, result *string) bool {
+func parseResponse(r *http.Response, result *Result) bool {
 	bodyText, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
@@ -55,15 +57,15 @@ func parseResponse(r *http.Response, result *string) bool {
 	str := strings.ToLower(string(bodyText))
 
 	if strings.Contains(str, "not a valid url") {
-		*result = "Not a valid url."
+		result.Error = "Not a valid url."
 		panic(*result)
 	}
 
 	return !strings.Contains(str, "is not banned by google adsense.")
 }
 
-func IsBanned(target, result *string) bool {
-	resp := getResponse(target)
+func IsBanned(result *Result) bool {
+	resp := getResponse(result.Target)
 
 	if resp.StatusCode != 200 {
 		log.Fatalf("Unexpected service response. Status code: %d", resp.StatusCode)
@@ -79,8 +81,8 @@ func IsBanned(target, result *string) bool {
 	return parseResponse(resp, result)
 }
 
-func WriteResult(target, result *string) {
-	file, err := json.MarshalIndent(Result{*target, *result}, "", "  ")
+func WriteResult(result *Result) {
+	file, err := json.MarshalIndent(result, "", "  ")
 
 	if err != nil {
 		log.Fatal(err)
