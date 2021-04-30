@@ -1,8 +1,8 @@
 package main
 
 import (
-	"adsense-ban-check/core"
 	"flag"
+	"github.com/fabelx/adsense-ban-check/core"
 )
 
 func main() {
